@@ -1,4 +1,25 @@
 pymailer
 ========
 
-Send emails from your command line.
+Sends emails from the command line.
+
+
+usage
+=====
+pymailer [-h] [--smtp SERVER_ADDRESS] [--user USER] [--pass PASSWORD]
+                [--encrypt {none,tls,ssl}] [--from SENDER]
+                [--to recepient [recepient ...]] [--subject SUBJECT] [-v]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --smtp SERVER_ADDRESS
+                        smtp server address ("ip:port")
+  --user USER           smtp user name
+  --pass PASSWORD       smtp password
+  --encrypt {none,tls,ssl}
+                        set encryption standard
+  --from SENDER         sender address
+  --to recepient [recepient ...]
+                        list of recipients
+  --subject SUBJECT     message subject
+  -v                    verbose output
