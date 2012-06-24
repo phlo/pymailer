@@ -1,0 +1,145 @@
+#!/usr/bin/python
+
+import sys
+# Import smtplib for the actual sending function
+import smtplib
+import argparse
+
+# Import the email modules we'll need
+from email.mime.text import MIMEText
+
+# debug header line
+def printDBGHeader(title):
+  print(title + " " + (79-len(title))*'=')
+
+##############################################################################
+# sendmail
+##############################################################################
+def sendmail (args, content):
+  
+  if args.verbose:
+    printDBGHeader("arguments")
+    for (k,v) in vars(args).items():
+      print("  " + k + " = " + str(v)) 
+    print()
+
+  msg = MIMEText(content)
+  msg['Subject'] = args.subject
+  msg['From'] = args.sender
+  msg['To'] = ", ".join(args.recipients)
+
+  if args.verbose:
+    printDBGHeader("message content")
+    print(msg)
+
+  # create smtp connection
+  if args.verbose:
+    printDBGHeader("connecting to " + args.server_address)
+
+  server = smtplib.SMTP(args.server_address)
+
+  # set encryption
+  if args.encryption == 'tls':
+    if args.verbose:
+      printDBGHeader("starting tls")
+
+    server.starttls()
+
+  # login to server
+  if args.verbose:
+    printDBGHeader("logging in")
+
+  server.login(args.user, args.password)
+
+  # send
+  if args.verbose:
+    printDBGHeader("sending message")
+  server.sendmail(args.sender, args.recipients, msg.as_string())
+
+  # close connection
+  server.quit
+
+  if args.verbose:
+    printDBGHeader("message sent")
+
+
+##############################################################################
+# Main
+##############################################################################
+if __name__ == '__main__':
+  parser = argparse.ArgumentParser(description='Sends emails from the command line.')
+
+  parser.add_argument(
+      '--smtp',
+      dest='server_address',
+      help='smtp server address ("ip:port")'
+      )
+
+  parser.add_argument(
+      '--user',
+      dest='user',
+      help='smtp user name'
+      )
+
+  parser.add_argument(
+      '--pass',
+      dest='password',
+      help='smtp password'
+      )
+
+  parser.add_argument(
+      '--encrypt',
+      dest='encryption',
+      #type='str',
+      choices=['none', 'tls', 'ssl'],
+      help='set encryption standard'
+      )
+
+  parser.add_argument(
+      '--from',
+      dest='sender',
+      help='sender address'
+      )
+
+  parser.add_argument(
+      '--to',
+      metavar='recepient',
+      dest='recipients',
+      help='list of recipients',
+      nargs='+'
+      )
+
+  parser.add_argument(
+      '--subject',
+      dest='subject',
+      help='message subject'
+      )
+
+  parser.add_argument(
+      '-v',
+      dest='verbose',
+      action='store_true',
+      help='verbose output'
+      )
+
+  # parse cmd line arguments
+  args = parser.parse_args()
+
+  # basic input checks
+  if args.server_address is None:
+    print("aborting: no server")
+    sys.exit(-1)
+  elif args.user is None:
+    print("aborting: no user")
+    sys.exit(-2)
+  elif args.password is None:
+    print("aborting: no password")
+    sys.exit(-3)
+  elif args.recipients is None:
+    print("aborting: no recipients")
+
+  # read message content from stdin
+  content = sys.stdin.read()
+
+  # send the message
+  sendmail(args, content)
